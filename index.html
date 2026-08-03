@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accolade Challenge Library — Wellspring</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Password protection overlay */
+  #password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0B1F3A 0%, #1A202C 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    font-family: 'Inter', sans-serif;
+  }
+
+  #password-overlay.hidden {
+    display: none;
+  }
+
+  .password-dialog {
+    background: white;
+    border-radius: 12px;
+    padding: 48px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    text-align: center;
+  }
+
+  .password-dialog h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: #0B1F3A;
+    margin-bottom: 12px;
+  }
+
+  .password-dialog p {
+    color: #718096;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+
+  .password-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+  }
+
+  .password-input:focus {
+    outline: none;
+    border-color: #FF6500;
+    box-shadow: 0 0 0 3px rgba(255, 101, 0, 0.1);
+  }
+
+  .password-btn {
+    width: 100%;
+    padding: 12px 16px;
+    background: #0B1F3A;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .password-btn:hover {
+    background: #FF6500;
+  }
+
+  .password-error {
+    color: #C53030;
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: none;
+  }
+
+  .password-error.show {
+    display: block;
+  }
+</style>
+  :root {
+    /* Wellspring brand palette — extracted from official SVG logos */
+    --ws-orange:       #FF6500;
+    --ws-orange-light: #FFF0E6;
+    --ws-purple:       #AC86FF;
+    --ws-purple-dark:  #7B5BC4;
+    --ws-purple-light: #F3EEFF;
+    --ws-pink:         #FF6A87;
+    --ws-pink-light:   #FFF0F3;
+
+    /* Neutrals */
+    --ws-navy:    #0B1F3A;
+    --ws-ink:     #1A202C;
+    --ws-slate:   #4A5568;
+    --ws-muted:   #718096;
+    --ws-border:  #E2E8F0;
+    --ws-light:   #F7F9FC;
+    --ws-white:   #FFFFFF;
+
+    /* Industry chips */
+    --cpg:     #D4760A;  --cpg-light:  #FEF3E2;
+    --chem:    #7B5BC4;  --chem-light: #F3EEFF;
+    --mfg:     #2B6CB0;  --mfg-light:  #EBF4FF;
+    --aero:    #2F855A;  --aero-light: #E6F4ED;
+    --bev:     #C53030;  --bev-light:  #FFF5F5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--ws-light);
+    color: var(--ws-ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ws-navy);
+    padding: 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 2px solid var(--ws-orange);
+  }
+
+  .logo-wrap { display: flex; align-items: center; }
+  .logo-wrap svg { height: 28px; width: auto; }
+
+  .header-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ws-navy);
+    padding: 64px 48px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Decorative gradient blob — Wellspring orange/purple */
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -80px;
+    width: 520px; height: 520px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(172,134,255,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; left: 120px;
+    width: 380px; height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,101,0,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ws-orange);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px; height: 2px;
+    background: var(--ws-orange);
+    border-radius: 2px;
+  }
+
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(30px, 3.8vw, 50px);
+    color: var(--ws-white);
+    line-height: 1.12;
+    max-width: 660px;
+    margin-bottom: 18px;
+  }
+  .hero h1 em { color: var(--ws-purple); font-style: italic; }
+
+  .hero-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.62);
+    max-width: 540px;
+    line-height: 1.65;
+    margin-bottom: 44px;
+  }
+
+  /* ── STAT ROW ── */
+  .stat-row { display: flex; gap: 0; flex-wrap: wrap; }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 0 36px 0 0;
+    margin-right: 36px;
+    border-right: 1px solid rgba(255,255,255,0.12);
+  }
+  .stat-item:last-child { border-right: none; }
+
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 38px;
+    color: var(--ws-white);
+    line-height: 1;
+  }
+  .stat-value .accent { color: var(--ws-orange); }
+  .stat-value .accent-p { color: var(--ws-purple); }
+
+  .stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.48);
+    max-width: 130px;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  /* ── FORRESTER BANNER ── */
+  .forrester-banner {
+    background: var(--ws-white);
+    border-bottom: 1px solid var(--ws-border);
+    padding: 14px 48px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  .forrester-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ws-muted);
+    white-space: nowrap;
+    padding-right: 28px;
+    border-right: 1px solid var(--ws-border);
+  }
+
+  .forrester-metrics { display: flex; gap: 28px; flex-wrap: wrap; align-items: center; }
+
+  .fmetric { display: flex; align-items: baseline; gap: 5px; }
+  .fmetric-value { font-size: 18px; font-weight: 700; color: var(--ws-navy); }
+  .fmetric-label { font-size: 11px; color: var(--ws-muted); }
+
+  .forrester-source {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--ws-muted);
+    font-style: italic;
+  }
+
+  /* ── MAIN ── */
+  main { max-width: 1280px; margin: 0 auto; padding: 48px 48px 80px; }
+
+  /* ── FILTER BAR ── */
+  .filter-section { margin-bottom: 36px; }
+
+  .filter-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ws-muted);
+    margin-bottom: 12px;
+  }
+
+  .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .filter-tab {
+    padding: 8px 18px;
+    border-radius: 100px;
+    border: 1.5px solid var(--ws-border);
+    background: var(--ws-white);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ws-slate);
+    cursor: pointer;
+    transition: all 0.16s ease;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .filter-tab:hover { border-color: var(--ws-orange); color: var(--ws-orange); }
+  .filter-tab.active { background: var(--ws-navy); border-color: var(--ws-navy); color: var(--ws-white); }
+  .filter-tab .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── RESULTS META ── */
+  .results-meta { display: flex; align-items: center; margin-bottom: 24px; }
+  .results-count { font-size: 13px; color: var(--ws-muted); }
+  .results-count strong { color: var(--ws-ink); }
+
+  /* ── CHALLENGE GRID ── */
+  .challenge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+  }
+
+  /* ── CHALLENGE CARD ── */
+  .challenge-card {
+    background: var(--ws-white);
+    border: 1px solid var(--ws-border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .challenge-card:hover {
+    box-shadow: 0 8px 32px rgba(11,31,58,0.11);
+    transform: translateY(-2px);
+  }
+
+  /* Top accent line per card — rotates through brand colors */
+  .challenge-card:nth-child(3n+1) { border-top: 3px solid var(--ws-orange); }
+  .challenge-card:nth-child(3n+2) { border-top: 3px solid var(--ws-purple); }
+  .challenge-card:nth-child(3n+3) { border-top: 3px solid var(--ws-pink); }
+
+  .card-header { padding: 20px 24px 14px; border-bottom: 1px solid var(--ws-border); }
+
+  .card-industries { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+
+  .industry-pill {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .pill-cpg  { background: var(--cpg-light);  color: var(--cpg);  }
+  .pill-chem { background: var(--chem-light); color: var(--chem); }
+  .pill-mfg  { background: var(--mfg-light);  color: var(--mfg);  }
+  .pill-aero { background: var(--aero-light); color: var(--aero); }
+  .pill-bev  { background: var(--bev-light);  color: var(--bev);  }
+
+  .challenge-number {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--ws-muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .challenge-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ws-navy);
+    line-height: 1.38;
+  }
+
+  .card-body { padding: 16px 24px 20px; }
+
+  .card-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ws-muted);
+    margin-bottom: 6px;
+  }
+
+  .card-pain {
+    font-size: 13px;
+    color: var(--ws-slate);
+    line-height: 1.58;
+    margin-bottom: 16px;
+  }
+
+  /* ── IMPACT METRICS ── */
+  .impact-metrics { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+
+  .impact-chip {
+    border-radius: 8px;
+    padding: 9px 12px;
+    flex: 1;
+    min-width: 80px;
+    background: linear-gradient(135deg, rgba(255,101,0,0.08) 0%, rgba(172,134,255,0.08) 100%);
+    border: 1px solid rgba(172,134,255,0.18);
+  }
+
+  .impact-number {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ws-orange);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .impact-desc { font-size: 10px; color: var(--ws-slate); line-height: 1.35; }
+
+  /* ── TOGGLE ── */
+  .toggle-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: var(--ws-light);
+    border: none;
+    border-top: 1px solid var(--ws-border);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ws-purple-dark);
+    letter-spacing: 0.02em;
+    transition: background 0.15s;
+  }
+  .toggle-btn:hover { background: var(--ws-purple-light); }
+  .toggle-btn svg { transition: transform 0.25s ease; flex-shrink: 0; }
+  .toggle-btn.open svg { transform: rotate(180deg); }
+
+  .expandable { display: none; padding: 0 24px 20px; animation: fadeSlide 0.2s ease; }
+  .expandable.open { display: block; }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .how-section { margin-top: 16px; }
+
+  .how-text {
+    font-size: 13px;
+    color: var(--ws-slate);
+    line-height: 1.62;
+    margin-bottom: 14px;
+  }
+
+  /* ── CUSTOMERS ── */
+  .customers-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+
+  .customer-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--ws-light);
+    border: 1px solid var(--ws-border);
+    color: var(--ws-slate);
+  }
+
+  /* ── QUOTE ── */
+  .quote-block {
+    border-left: 3px solid var(--ws-orange);
+    padding: 10px 14px;
+    background: var(--ws-orange-light);
+    border-radius: 0 8px 8px 0;
+    margin-top: 14px;
+  }
+  .quote-text {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--ws-navy);
+    line-height: 1.58;
+    margin-bottom: 6px;
+  }
+  .quote-attr { font-size: 11px; color: var(--ws-muted); font-weight: 500; }
+
+  /* ── FOOTER ── */
+  .page-footer {
+    background: var(--ws-navy);
+    border-top: 2px solid var(--ws-orange);
+    padding: 28px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-logo svg { height: 20px; width: auto; opacity: 0.7; }
+  .footer-text { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+  /* ── HIDDEN ── */
+  .challenge-card.hidden { display: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    header, .hero, main, .forrester-banner, .page-footer { padding-left: 20px; padding-right: 20px; }
+    .challenge-grid { grid-template-columns: 1fr; }
+    .stat-row { gap: 20px; }
+    .stat-item { padding-right: 20px; margin-right: 20px; }
+    .forrester-source { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PASSWORD PROTECTION OVERLAY -->
+<div id="password-overlay">
+  <div class="password-dialog">
+    <h1>Accolade Challenge Library</h1>
+    <p>Internal Sales Enablement · Confidential</p>
+    <div class="password-error" id="password-error">Incorrect password. Please try again.</div>
+    <input type="password" id="password-input" class="password-input" placeholder="Enter password" autocomplete="off">
+    <button class="password-btn" onclick="checkPassword()">Access Library</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-wrap">
+    <!-- Wellspring White Logo (official SVG) -->
+    <svg width="577" height="91" viewBox="0 0 577 91" fill="none" xmlns="http://www.w3.org/2000/svg" style="height:28px;width:auto;">
+<path d="M71.5558 68.4539L60.0481 68.7984C59.474 68.7984 59.2444 67.9947 59.7037 67.6503L65.2252 63.8563C67.0675 62.7083 67.4119 60.1771 66.1436 58.3348C64.7605 56.7221 62.3496 56.3777 60.7369 57.7608L48.8848 66.967C47.6219 67.8854 46.124 68.5797 44.5113 68.5797H35.0755C34.3867 68.5797 34.1571 67.8909 34.7311 67.5464C41.2913 63.6322 45.6593 61.2213 51.7603 57.6515C57.5115 54.3167 66.0288 49.484 66.0288 42.2349C66.0288 35.7895 61.3109 32.1104 54.2915 32.1104C49.344 32.1104 44.3965 33.3787 40.2526 34.9859C30.3576 38.6651 19.1998 45.6845 16.6686 56.733C15.7502 60.4122 20.9273 62.7138 22.7642 58.6902C23.6826 56.5034 24.7213 54.5463 26.2138 52.5946C32.4241 45.0012 43.7022 39.4797 53.138 39.4797C55.8987 39.4797 57.5114 40.3981 57.5114 42.3552C57.5114 43.7383 56.8226 45.116 54.2915 46.9583C51.4159 49.0302 40.7173 54.8962 34.1571 58.9252C25.6452 64.1023 22.9993 66.2891 22.9993 69.7387C22.9993 74.1121 26.7932 75.949 32.435 75.949H44.5168C46.3591 75.949 47.5071 76.523 48.7754 77.4469L60.7424 86.7679C62.4699 88.151 65.001 87.6863 66.2639 85.9642C67.4119 84.1219 66.9527 81.8204 65.2306 80.5575L59.7091 76.7635C59.2499 76.4191 59.4795 75.7303 60.0535 75.7303L71.5612 76.0747C76.8531 76.1895 76.7383 68.3665 71.5612 68.4813L71.5558 68.4539Z" fill="white"/>
+<path d="M120.91 68.4544L108.714 68.7988C108.14 68.7988 107.91 67.9952 108.369 67.6508L113.891 63.8568C115.733 62.7088 116.078 60.1776 114.809 58.3353C113.426 56.7226 111.015 56.3782 109.403 57.7613L97.5506 66.9674C96.2877 67.8859 94.7898 68.2357 93.4067 68.0007C85.354 66.7324 81.899 62.8236 81.899 58.1057C81.899 51.7805 91.1052 47.1775 98.5838 42.9188C107.096 37.9713 114.23 34.8661 114.23 28.5355C114.23 24.3916 110.78 19.5589 98.469 17.8369C95.1342 17.3777 92.9475 18.0665 92.4883 20.368C92.0291 22.6696 93.4067 24.0472 96.1675 24.7415C102.033 26.1246 105.833 27.1579 105.833 29.115C105.833 31.4275 99.3874 34.0625 94.7898 36.4788C85.1244 41.4263 73.6222 47.8663 73.6222 57.8761C73.6222 67.8859 79.9473 73.7518 93.4122 75.7089C95.1397 75.9385 96.2877 76.5125 97.4412 77.4364L109.408 86.7574C111.136 88.1405 113.667 87.6758 114.93 85.9538C116.078 84.1115 115.618 81.8099 113.896 80.5471L108.375 76.7531C107.916 76.4087 108.145 75.7199 108.719 75.7199L120.916 76.0643C126.208 76.1791 126.093 68.356 120.916 68.4708L120.91 68.4544Z" fill="white"/>
+<path d="M64.8806 26.3483C67.1821 29.3387 70.6317 31.4106 74.6607 31.4106C81.4506 31.4106 86.9721 25.6595 86.9721 19.2141C86.9721 12.7687 81.4506 7.01758 74.7755 7.01758C69.9429 7.01758 65.799 9.89314 63.8473 14.037C63.1585 15.5349 62.4642 16.2237 59.9331 16.5682C56.8279 17.1422 53.8375 17.7162 50.7269 18.1809C35.4252 21.0564 19.5495 26.0039 8.61579 37.856C3.55895 43.3776 0.109375 49.8175 0.109375 56.9517C0.109375 66.8467 7.58802 71.5646 9.65995 72.7127C10.9228 73.4015 12.4207 73.2867 13.4539 72.2534C14.7223 70.9906 14.602 69.0335 13.3391 67.88C10.234 64.8896 7.58802 62.7029 7.58802 57.1813C7.58802 51.6598 10.808 47.0568 14.4926 43.1425C26.5744 30.4867 43.7129 26.2281 60.5125 24.3912C62.6993 24.1616 63.9621 24.9652 64.886 26.3483H64.8806ZM74.7755 14.7258C77.3067 14.7258 79.2638 16.7978 79.2638 19.2141C79.2638 21.6305 77.3067 23.7024 74.7755 23.7024C72.2444 23.7024 70.2873 21.7453 70.2873 19.2141C70.2873 16.683 72.3592 14.7258 74.7755 14.7258Z" fill="white"/>
+<path d="M210.752 21.8657L199.873 53.7046L189.344 21.8657H179.214L169.325 54.1201L158.287 21.8657H142.603L162.19 72.7129H172.239L181.751 41.6721L192.389 72.7129H202.437L220.751 21.8657H210.752Z" fill="white"/>
+<path d="M243.264 20.8595C229.023 20.8595 218.69 32.4929 218.69 48.139C218.69 63.7851 229.925 73.7129 243.264 73.7129C255.099 73.7129 263.119 67.0926 263.923 57.2632C260.812 60.3738 255.597 62.2763 249.78 62.2763C242.958 62.2763 234.938 58.5643 232.532 48.6365H263.923C264.021 48.0352 263.988 49.0356 264.021 48.6365C265.552 32.3726 257.303 20.854 243.258 20.854L243.264 20.8595ZM249.982 40.7205H231.729C232.128 32.2961 236.643 27.7805 241.76 27.7805C246.374 27.7805 250.387 31.0879 249.982 40.7205Z" fill="white"/>
+<path d="M284.702 2.50732H270.762V72.7126H284.702V2.50732Z" fill="white"/>
+<path d="M306.258 2.50732H292.318V72.7126H306.258V2.50732Z" fill="white"/>
+<path d="M338.934 42.2239L332.111 40.0153C326.393 38.2112 324.386 35.6036 324.386 32.892C324.386 29.5846 327.393 27.2775 330.908 27.2775C335.522 27.2775 337.928 30.0875 337.928 34.8983V35.8004H351.868C351.617 25.0525 342.34 20.854 332.51 20.854C319.871 20.854 311.851 27.775 311.851 36.8992C311.851 44.2193 316.864 48.631 325.288 51.5394L332.007 53.8464C337.124 55.6505 339.229 58.0614 339.229 61.2704C339.229 64.4794 336.222 67.2894 331.707 67.2894C326.19 67.2894 323.381 63.3751 323.381 59.0618V58.1598H309.238C309.238 69.6893 319.865 73.702 330.198 73.702C343.837 73.702 352.863 66.6826 352.863 56.7548C352.863 49.134 347.746 45.1213 338.923 42.213L338.934 42.2239Z" fill="white"/>
+<path d="M386.206 20.8594C378.984 20.8594 373.971 25.0743 371.363 30.2897V21.8653H357.423V89.7635H371.363V72.2094C374.271 73.2153 377.382 73.7128 380.389 73.7128C395.833 73.7128 405.766 62.1778 405.766 45.8319C405.766 29.4861 396.139 20.8594 386.206 20.8594ZM379.787 66.9941C376.376 66.9941 371.363 64.0584 371.363 58.1378V32.5912C373.069 31.5908 375.173 30.7872 377.579 30.7872C385.905 30.7872 390.918 37.1779 390.918 50.845C390.918 61.8771 385.801 66.9941 379.782 66.9941H379.787Z" fill="white"/>
+<path d="M424.965 33.4992V21.8658H411.025V72.7184H424.965V35.3087H444.121V21.3683C443.618 21.2699 442.618 21.166 441.913 21.166C433.887 21.166 428.071 26.1791 424.965 33.4992Z" fill="white"/>
+<path d="M463.326 21.8657H449.386V72.7183H463.326V21.8657Z" fill="white"/>
+<path d="M503.141 20.8594C495.22 20.8594 490.004 25.1727 486.593 30.6888V21.8598H472.653V72.7124H486.593V32.7935C488.999 31.6892 491.409 30.9894 493.815 30.9894C500.534 30.9894 503.841 34.8982 503.841 42.8252V72.7124H517.782V38.1127C517.782 26.3809 511.462 20.8648 503.141 20.8648V20.8594Z" fill="white"/>
+<path d="M576.123 17.7217C575.702 17.6397 574.855 17.5522 574.265 17.5522C568.251 17.5522 563.714 20.9034 560.937 25.9876C556.787 22.5599 551.173 20.8597 544.613 20.8597C530.169 20.8597 523.051 29.1857 523.051 37.9108C523.051 45.63 527.567 50.5501 535.188 52.6549C528.469 53.8576 525.457 58.0725 525.457 62.3804C525.457 66.2946 528.163 69.0991 533.181 70.6025C524.156 71.4061 518.339 74.5004 518.339 79.929C518.339 87.7192 528.671 90.7588 544.317 90.7588C559.963 90.7588 572.4 81.733 572.4 71.2039C572.4 63.3808 566.54 58.6684 553.977 58.6684H537.194V53.1523C539.403 53.5514 541.906 53.7537 544.514 53.7537C558.958 53.7537 566.075 45.8322 566.075 36.6042C566.075 33.9965 565.228 31.3998 563.965 29.4645H576.123V17.7217ZM551.074 71.2093C556.935 71.2093 561.101 72.4394 561.101 76.124C561.101 81.9243 554.338 84.5484 545.815 84.5484C537.292 84.5484 531.673 81.8423 531.673 77.529C531.673 75.222 533.127 72.7127 535.887 71.2093H551.074ZM545.115 47.4395C540.6 47.4395 536.789 43.6291 536.789 36.4074C536.789 30.8914 539.9 26.8787 544.514 26.8787C549.128 26.8787 552.736 30.7929 552.736 38.0146C552.736 43.4323 549.626 47.445 545.115 47.445V47.4395Z" fill="white"/>
+<path d="M456.356 0.23877C451.666 0.23877 447.861 3.1362 447.861 8.1821C447.861 13.228 451.666 16.1254 456.356 16.1254C461.047 16.1254 464.852 13.228 464.852 8.1821C464.852 3.1362 461.047 0.23877 456.356 0.23877Z" fill="white"/>
+    </svg>
+  </div>
+  <span class="header-badge">Accolade · Sales Enablement · Internal Use Only</span>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Customer Challenge Library</div>
+  <h1>Why customers chose Accolade — and what <em>changed</em></h1>
+  <p class="hero-sub">Real challenges, real solutions, real impact. Drawn from case studies, internal success stories, and a Forrester TEI study across 15+ Accolade customers.</p>
+  <div class="stat-row">
+    <div class="stat-item">
+      <div class="stat-value">321<span class="accent">%</span></div>
+      <div class="stat-label">Average ROI (Forrester TEI)</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">15<span class="accent">+</span></div>
+      <div class="stat-label">Customer stories across 5 industries</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">23</div>
+      <div class="stat-label">Month average payback period</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">$65<span class="accent-p">M</span></div>
+      <div class="stat-label">Net present value (5-yr, composite)</div>
+    </div>
+  </div>
+</div>
+
+<!-- FORRESTER BANNER -->
+<div class="forrester-banner">
+  <span class="forrester-label">Forrester TEI · Aug 2024</span>
+  <div class="forrester-metrics">
+    <div class="fmetric"><span class="fmetric-value">$86M</span><span class="fmetric-label">Benefits (5-yr PV)</span></div>
+    <div class="fmetric"><span class="fmetric-value">15%</span><span class="fmetric-label">Faster time to market</span></div>
+    <div class="fmetric"><span class="fmetric-value">20 FTEs</span><span class="fmetric-label">PM headcount avoided</span></div>
+    <div class="fmetric"><span class="fmetric-value">10%</span><span class="fmetric-label">Project budget saved</span></div>
+    <div class="fmetric"><span class="fmetric-value">25%</span><span class="fmetric-label">Higher innovation success rate</span></div>
+  </div>
+  <span class="forrester-source">Globally operating manufacturer composite, $25B revenue</span>
+</div>
+
+<!-- MAIN -->
+<main>
+  <div class="filter-section">
+    <div class="filter-label">Filter by Industry</div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">All Industries</button>
+      <button class="filter-tab" data-filter="cpg"><span class="dot" style="background:#D4760A"></span>Consumer Goods</button>
+      <button class="filter-tab" data-filter="chem"><span class="dot" style="background:#7B5BC4"></span>Chemicals &amp; Coatings</button>
+      <button class="filter-tab" data-filter="mfg"><span class="dot" style="background:#2B6CB0"></span>Manufacturing</button>
+      <button class="filter-tab" data-filter="bev"><span class="dot" style="background:#C53030"></span>Beverage</button>
+      <button class="filter-tab" data-filter="aero"><span class="dot" style="background:#2F855A"></span>Aerospace &amp; Gov</button>
+    </div>
+  </div>
+
+  <div class="results-meta">
+    <span class="results-count"><strong id="count">17</strong> challenges shown</span>
+  </div>
+
+  <div class="challenge-grid" id="grid">
+
+    <!-- CARD 1 -->
+    <div class="challenge-card" data-industries="cpg,chem,mfg,bev,aero">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-bev">Beverage</span>
+          <span class="industry-pill pill-aero">Aerospace</span>
+        </div>
+        <div class="challenge-number">Challenge 01</div>
+        <div class="challenge-title">No single source of truth — data scattered across spreadsheets, emails, and disconnected tools</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Teams relied on static spreadsheets and siloed point solutions to manage projects and portfolios. Data was inconsistent, always out of date, and impossible to trust for real decisions. Gate meetings required days of manual data consolidation — and the numbers were still wrong.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">100%</div><div class="impact-desc">Global portfolio visibility (Mondelēz)</div></div>
+          <div class="impact-chip"><div class="impact-number">50%</div><div class="impact-desc">Less time prepping gate meetings (Mondelēz)</div></div>
+          <div class="impact-chip"><div class="impact-number">5,200</div><div class="impact-desc">Users on single system (BASF)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade became the single platform for all product, project, and portfolio information — replacing spreadsheets, homegrown tools, and disconnected ERPs. Real-time data flows from idea through launch, giving every stakeholder one version of the truth without manual compilation.</div>
+          <div class="customers-row"><span class="customer-tag">Mondelēz</span><span class="customer-tag">BASF</span><span class="customer-tag">Lion Beverages</span><span class="customer-tag">Hershey</span><span class="customer-tag">Covestro (Anon)</span><span class="customer-tag">Scott Bader</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"The beauty of this Accolade implementation is that we really are creating one single source of truth, not only for having all our products, but also for managing our portfolio resources in the same location."</div>
+            <div class="quote-attr">— Andre Dias Alves da Silva, Director Innovation I2M, Mondelēz International</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="challenge-card" data-industries="cpg,chem,mfg,bev">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+        </div>
+        <div class="challenge-number">Challenge 02</div>
+        <div class="challenge-title">Everything is "Priority 1" — no way to make real portfolio trade-offs or kill low-value projects</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Every project had top priority, which meant nothing did. Leaders couldn't make defensible go/no-go decisions because the data wasn't there. Projects that should have been killed years ago continued consuming resources. Kill rates were stuck at 6% when they should have been 13–20%.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">50%</div><div class="impact-desc">Fewer high-priority projects in pipeline (Scott Bader)</div></div>
+          <div class="impact-chip"><div class="impact-number">30%</div><div class="impact-desc">Portfolio value increase (Scott Bader)</div></div>
+          <div class="impact-chip"><div class="impact-number">$20.9M</div><div class="impact-desc">Portfolio value from strategic spend (Forrester, 5-yr)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade gave portfolio leaders the data visibility to make confident, data-backed decisions — including the hardest decision: killing a project. Real-time portfolio views, scoring, and strategic alignment filters made it clear which projects belonged and which didn't.</div>
+          <div class="customers-row"><span class="customer-tag">Scott Bader</span><span class="customer-tag">Hershey</span><span class="customer-tag">Land O'Lakes</span><span class="customer-tag">Mondelēz</span><span class="customer-tag">Kronos International</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"When we look at the kill rate with Accolade, 20% of new upcoming projects are killed, so we can add 20% more with other projects and feed them into the pipeline."</div>
+            <div class="quote-attr">— Programming & Process Manager, Manufacturing (Forrester TEI)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3 -->
+    <div class="challenge-card" data-industries="cpg,chem,mfg,aero">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-aero">Aerospace</span>
+        </div>
+        <div class="challenge-number">Challenge 03</div>
+        <div class="challenge-title">Slow time to market — missed launch windows are costing millions in revenue</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Without structured process governance, projects drifted. Timelines were poorly estimated, revenue was being recognized 18 months later than promised to shareholders, and missed market windows — especially in automotive and CPG — directly cost millions. Development cycles at Kronos ran five years when two was possible.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">15%</div><div class="impact-desc">Faster time to market (Forrester TEI)</div></div>
+          <div class="impact-chip"><div class="impact-number">$9.7M</div><div class="impact-desc">Incremental profit from speed (Forrester, 5-yr)</div></div>
+          <div class="impact-chip"><div class="impact-number">5yr→2yr</div><div class="impact-desc">Dev cycle reduction (Kronos)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade's Stage-Gate automation, resource planning, and real-time project tracking gave teams the structure to keep projects on schedule. Leaders could see delays coming early enough to intervene. Kronos cut development cycles from five years to as little as two — growing new product revenue from near zero to nearly 10% of total sales in five years.</div>
+          <div class="customers-row"><span class="customer-tag">Kronos International</span><span class="customer-tag">Mondelēz</span><span class="customer-tag">Scott Bader</span><span class="customer-tag">Hain Celestial</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"Every time we miss a window — especially if we're talking about the automotive market — sometimes that could be in the millions of dollars."</div>
+            <div class="quote-attr">— Director of Portfolio Management, Manufacturing (Forrester TEI)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 4 -->
+    <div class="challenge-card" data-industries="cpg,mfg,bev,chem">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-bev">Beverage</span>
+        </div>
+        <div class="challenge-number">Challenge 04</div>
+        <div class="challenge-title">Cross-functional teams working in silos — no shared platform for collaboration or governance</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">R&D, marketing, operations, finance, and regulatory teams each had their own processes, tools, and versions of project data. Cross-functional handoffs were painful, slow, and error-prone. Important steps — like product stewardship reviews — were routinely skipped. At Lion, "innovation was chaotic and heavily manual."</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">8→3</div><div class="impact-desc">Gate meetings consolidated (Hershey)</div></div>
+          <div class="impact-chip"><div class="impact-number">30→8</div><div class="impact-desc">Project types simplified (Hershey)</div></div>
+          <div class="impact-chip"><div class="impact-number">10:1</div><div class="impact-desc">ROI on projects (Hershey)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade brought every function into a single workflow — from idea capture through gate reviews to post-launch tracking. Responsibilities and deliverables became transparent to all stakeholders. Hershey consolidated 30 project types into 8 and 8 gate meetings into 3 — and won the PDMA Outstanding Corporate Innovator Award in 2022.</div>
+          <div class="customers-row"><span class="customer-tag">Hershey</span><span class="customer-tag">Lion Beverages</span><span class="customer-tag">Certis (Anon)</span><span class="customer-tag">Land O'Lakes</span><span class="customer-tag">Hain Celestial</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"We have new ways of working, and better decisions have actually driven better financial planning, resulting in margin improvements, complexity reduction across the portfolio."</div>
+            <div class="quote-attr">— Jeff Schmitz, Senior Director of US Commercial Operations, The Hershey Company</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 5 -->
+    <div class="challenge-card" data-industries="chem,mfg,aero">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-aero">Aerospace</span>
+        </div>
+        <div class="challenge-number">Challenge 05</div>
+        <div class="challenge-title">Leadership has no visibility into R&D investment performance or portfolio health</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">C-suite and R&D leaders were flying blind. No real-time dashboards, no consolidated view of what was being worked on or why, no ability to steer the portfolio strategically. At BASF — managing €2.1B in annual R&D — this meant thousands of projects with limited top-down accountability.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">100%</div><div class="impact-desc">R&D visibility across 3,000 activities (BASF)</div></div>
+          <div class="impact-chip"><div class="impact-number">5,000</div><div class="impact-desc">Active users across global sites (BASF)</div></div>
+          <div class="impact-chip"><div class="impact-number">€2.1B</div><div class="impact-desc">R&D budget steered via Accolade (BASF)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade's portfolio dashboards and governance frameworks gave R&D and business leadership a live, consolidated view of investment performance — by project, by portfolio, and by strategic priority. BASF now steers innovation across ~10,000 R&D staff using Accolade as their global standard.</div>
+          <div class="customers-row"><span class="customer-tag">BASF</span><span class="customer-tag">Covestro (Anon)</span><span class="customer-tag">Merck (Anon)</span><span class="customer-tag">NASA (Anon)</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"At BASF, Accolade enables data-based steering of individual R&D projects as well as whole innovation portfolios."</div>
+            <div class="quote-attr">— Michael Bretz, Head of Innovation Management & Strategic Consulting, BASF</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 6 -->
+    <div class="challenge-card" data-industries="cpg,chem,mfg">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+        </div>
+        <div class="challenge-number">Challenge 06</div>
+        <div class="challenge-title">Resource planning is reactive — teams are overloaded or underutilized without warning</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Without a real-time resource view, capacity planning was guesswork. Project managers didn't know which teams were over-stretched until deadlines were missed. In manufacturing, teams needed 20–50 people to plan what Accolade now handles with 10.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">50%</div><div class="impact-desc">Reduction in planning headcount (Mfg customer)</div></div>
+          <div class="impact-chip"><div class="impact-number">20 FTEs</div><div class="impact-desc">Project managers avoided (Forrester TEI)</div></div>
+          <div class="impact-chip"><div class="impact-number">$16.8M</div><div class="impact-desc">Project cost & labor savings (Forrester, 5-yr)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade's resource management and capacity planning modules gave leaders a live view of team utilization, enabling smarter assignment and real-time reallocation. Scott Bader's Global R&D Director now reassigns resources "on the fly" to support the most critical projects.</div>
+          <div class="customers-row"><span class="customer-tag">Scott Bader</span><span class="customer-tag">Kronos International</span><span class="customer-tag">Hershey</span><span class="customer-tag">Mondelēz</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"Before Accolade, we needed 20 to 50 people to plan for projects. And now I think we are down by 50% or even more. Everything is transparent, and we can communicate better than before."</div>
+            <div class="quote-attr">— Head of Project Management, Manufacturing (Forrester TEI)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 7 -->
+    <div class="challenge-card" data-industries="chem,mfg,cpg">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+        </div>
+        <div class="challenge-number">Challenge 07</div>
+        <div class="challenge-title">No standardized innovation process across global R&D centers — each site doing things differently</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Multinational companies had R&D centers operating with entirely different workflows, templates, scoring criteria, and data definitions. This made portfolio comparison impossible and global rollouts painful. Scott Bader's six R&D centers each prioritized projects differently; BASF had disconnected tools across 100+ sites.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">100+</div><div class="impact-desc">Global sites standardized (BASF)</div></div>
+          <div class="impact-chip"><div class="impact-number">3 continents</div><div class="impact-desc">3 BUs unified on one system (Covestro)</div></div>
+          <div class="impact-chip"><div class="impact-number">9 wks</div><div class="impact-desc">Initial enterprise deployment (Mondelēz)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade's flexible, configurable process models allowed each organization to define enterprise-wide standards while accommodating variation by project type or business unit. BASF has standardized global innovation management with Accolade since 2003. Covestro rolled out to 3 continents across 3 BUs. Mondelēz deployed enterprise-wide in 9 weeks.</div>
+          <div class="customers-row"><span class="customer-tag">BASF</span><span class="customer-tag">Covestro (Anon)</span><span class="customer-tag">Scott Bader</span><span class="customer-tag">Mondelēz</span><span class="customer-tag">Merck (Anon)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 8 -->
+    <div class="challenge-card" data-industries="cpg,bev,chem">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-bev">Beverage</span>
+          <span class="industry-pill pill-chem">Chemicals</span>
+        </div>
+        <div class="challenge-number">Challenge 08</div>
+        <div class="challenge-title">Innovation decisions based on gut feel — leading to failed launches and wasted investment</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Gate decisions and portfolio trade-offs were driven by opinion, politics, and seniority rather than facts. "We've come too far not to launch it" became a trap — organizations kept pushing products to market that were known to fail. Teams made decisions based on personal sentiment rather than market demand, financial projections, or strategic fit.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">20–30%</div><div class="impact-desc">More successful decisions with data (Mfg, Forrester)</div></div>
+          <div class="impact-chip"><div class="impact-number">$9.1M</div><div class="impact-desc">Revenue from higher innovation throughput (Forrester)</div></div>
+          <div class="impact-chip"><div class="impact-number">40%</div><div class="impact-desc">Portfolio refreshed with new projects in 12 months (CPG)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade embedded decision criteria, scoring models, and portfolio analytics directly into the gate review process — replacing PowerPoint decks with live data and eliminating the politics of "who makes the call." Leaders at Mondelēz now "drive portfolio decisions based on real-time facts."</div>
+          <div class="customers-row"><span class="customer-tag">Mondelēz</span><span class="customer-tag">Hershey</span><span class="customer-tag">Lion Beverages</span><span class="customer-tag">Hain Celestial</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"We gave the organization the capability to actually drive projects and portfolio decisions based on real-time facts."</div>
+            <div class="quote-attr">— David Malik, I2M Global Commercialization Lead, Mondelēz International</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 9 -->
+    <div class="challenge-card" data-industries="chem,mfg,aero">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-aero">Aerospace</span>
+        </div>
+        <div class="challenge-number">Challenge 09</div>
+        <div class="challenge-title">Compliance and audit gaps — no traceability across regulated product development processes</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">In regulated industries (pharma, chemicals, aerospace), lack of documented process compliance was a serious liability. Steps were skipped without detection. Materials banned in key markets were used without anyone catching it — one customer had to restart an entire project and rebuild its supply chain, costing millions.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">Full</div><div class="impact-desc">Auditability & traceability across all projects</div></div>
+          <div class="impact-chip"><div class="impact-number">20%</div><div class="impact-desc">Cost saving via Cloud lift & process simplification (Certis)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade enforces process accountability through configurable gates, checklists, and risk logs — ensuring required steps can't be skipped and that every decision is documented with who approved it and when. Certis used Accolade to streamline regulatory management across complex multi-country projects.</div>
+          <div class="customers-row"><span class="customer-tag">Certis (Anon)</span><span class="customer-tag">BASF</span><span class="customer-tag">Merck (Anon)</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"Having visibility and risk logs has vastly improved our processes and our need to rework. Even if someone in R&D forgets that product compliance needs to review an item, compliance can see it and call it out."</div>
+            <div class="quote-attr">— Innovation Applications Administrator, Manufacturing (Forrester TEI)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 10 -->
+    <div class="challenge-card" data-industries="cpg,chem,mfg">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+        </div>
+        <div class="challenge-number">Challenge 10</div>
+        <div class="challenge-title">Portfolio not aligned to strategy — too many incremental line extensions, not enough breakthrough innovation</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Despite stated growth strategies, the work being done didn't reflect them. Most innovation resources went to small line extensions while big bets were chronically underfunded. Land O'Lakes had an unbalanced portfolio with most resources dedicated to enhancing current platforms. Hain Celestial was over-reliant on low-value line extensions.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">30%</div><div class="impact-desc">Overall project reduction, freeing capacity (Land O'Lakes)</div></div>
+          <div class="impact-chip"><div class="impact-number">~10%</div><div class="impact-desc">Of revenue now from new products (Kronos, 5 years)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade's portfolio roadmapping and strategic bucket management tools allowed leaders to explicitly allocate resources across innovation horizons — "defend core," "attack competition," and "change-the-world" buckets. Leaders could finally see how their portfolio was actually balanced vs. how it should be, and make deliberate shifts.</div>
+          <div class="customers-row"><span class="customer-tag">Land O'Lakes</span><span class="customer-tag">Hain Celestial</span><span class="customer-tag">Kronos International</span><span class="customer-tag">California Olive Ranch (Anon)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 11 -->
+    <div class="challenge-card" data-industries="bev,cpg,mfg">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-bev">Beverage</span>
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+        </div>
+        <div class="challenge-number">Challenge 11</div>
+        <div class="challenge-title">Manual gate reporting is eating team time — preparing for review meetings takes days, not hours</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Gate meetings required enormous preparation effort — teams spent days pulling data from multiple systems into PowerPoint decks, many of which were out of date by the time they presented. This wasn't just inefficient; it was governance theater. Lion's team described populating gate papers as a primary source of duplication and waste.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">50%</div><div class="impact-desc">Reduction in gate prep time (Mondelēz)</div></div>
+          <div class="impact-chip"><div class="impact-number">Eliminated</div><div class="impact-desc">PowerPoint from most gate presentations (Hershey)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">With Accolade, gate documentation is generated automatically from live project data — no more manual deck creation. Leaders review analytics directly inside Accolade, seeing real-time financial projections, resource status, and risk scores without a single PowerPoint. Mondelēz cut gate prep time by 50%. Hershey eliminated PowerPoint from most gate presentations entirely.</div>
+          <div class="customers-row"><span class="customer-tag">Mondelēz</span><span class="customer-tag">Hershey</span><span class="customer-tag">Lion Beverages</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 12 -->
+    <div class="challenge-card" data-industries="chem,mfg,aero">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-aero">Aerospace</span>
+        </div>
+        <div class="challenge-number">Challenge 12</div>
+        <div class="challenge-title">Commoditization pressure — core products losing margin with no clear path to new growth</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">As core offerings became commoditized, organizations needed to drive meaningful innovation to differentiate — but lacked the structured capability to do so at scale. Kronos International faced a slow-growing business precisely because TiO2 had become a commodity. They needed new product revenue but had no system to track, manage, or accelerate that innovation.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">~0%→10%</div><div class="impact-desc">New product revenue share (Kronos, 5 years)</div></div>
+          <div class="impact-chip"><div class="impact-number">$21.7M</div><div class="impact-desc">Business growth from new product launch (Forrester)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade gave Kronos the platform to build an Innovation Process Management capability from scratch — organizing and prioritizing new product bets, managing long lab cycles, and tracking progress toward commercialization. New product revenue grew from near zero to nearly 10% of total sales over five years.</div>
+          <div class="customers-row"><span class="customer-tag">Kronos International</span><span class="customer-tag">Scott Bader</span><span class="customer-tag">BASF</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"Accolade enables the Innovation Process Team to be the brightest spot within Kronos International. We can show top management the time, productivity, and sustainability savings our products have achieved."</div>
+            <div class="quote-attr">— Dr. Simon Muenzer, Program & Process Manager, Kronos International</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 13 -->
+    <div class="challenge-card" data-industries="mfg,cpg,chem">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+        </div>
+        <div class="challenge-number">Challenge 13</div>
+        <div class="challenge-title">Frontline ideas never surface — innovation is top-down and misses ground-level insights</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">There was no structured way for employees on the shop floor, in field sales, or in customer-facing roles to submit ideas or improvements. Innovation was driven by HQ, often missing the most valuable insights from people closest to the product. One Forrester interviewee summed it up: "We had no way to generate ideas other than hoping someone talks to a salesperson."</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">Democratized</div><div class="impact-desc">Idea capture from all org levels</div></div>
+          <div class="impact-chip"><div class="impact-number">25%</div><div class="impact-desc">Higher innovation success rate (Forrester TEI)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade's Idea Management module opened a structured channel for anyone in the organization to submit, review, and develop ideas — with configurable scoring to filter by strategic fit before ideas enter the formal development pipeline. One manufacturing customer's shop floor worker submitted an ergonomics improvement that led to a purpose-built elevator system and meaningfully reduced workplace injuries.</div>
+          <div class="customers-row"><span class="customer-tag">Multiple Manufacturing Customers</span><span class="customer-tag">Hain Celestial</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 14 -->
+    <div class="challenge-card" data-industries="mfg,chem,aero">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-chem">Chemicals</span>
+          <span class="industry-pill pill-aero">Aerospace</span>
+        </div>
+        <div class="challenge-number">Challenge 14</div>
+        <div class="challenge-title">Acquisitions are chaotic — no system to integrate new product lines, teams, or processes at speed</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">When organizations grew through M&A, the absence of a common innovation management system made integration painful and slow. Different tools, different data formats, and different processes meant months of manual work to get acquired teams onto the same page. For some, acquisitions weren't even possible at the pace required.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">Enabled</div><div class="impact-desc">Acquisition integration at operational speed</div></div>
+          <div class="impact-chip"><div class="impact-number">3 BUs</div><div class="impact-desc">Across 3 continents unified post-acquisition (Covestro)</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade's enterprise-grade configurability allowed organizations to onboard new business units and acquired companies into an existing governance framework without starting from scratch. The portfolio visibility during transitions — across new product lines, geographies, and teams — makes acquisitions possible at the speed modern businesses require.</div>
+          <div class="customers-row"><span class="customer-tag">Covestro (Anon)</span><span class="customer-tag">Multiple Mfg Customers</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"Without Accolade, I don't think we'd be in a position to be acquiring people the way we are because half of our finance team would be tracking down what's happening."</div>
+            <div class="quote-attr">— Innovation Applications Administrator, Manufacturing (Forrester TEI)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 15 -->
+    <div class="challenge-card" data-industries="mfg,chem,cpg">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-chem">Chemicals</span>
+        </div>
+        <div class="challenge-number">Challenge 15</div>
+        <div class="challenge-title">Sustainability goals are invisible in the innovation process — no way to track or report ESG impact</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Sustainability commitments were made at the executive level but had no mechanism to flow into project decision-making. ESG metrics weren't tracked at the project level, making it nearly impossible to report on sustainability impact or prioritize accordingly. Without a system, one customer said their sustainability goals would have been "impossible."</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">Embedded</div><div class="impact-desc">Sustainability scorecards in every project</div></div>
+          <div class="impact-chip"><div class="impact-number">UN SDG</div><div class="impact-desc">Alignment linked directly to project views</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade's configurable scorecard framework enabled organizations to embed sustainability metrics — aligned to UN SDGs — directly into every project. Portfolio views can be filtered and analyzed by ESG contribution, making it possible for leaders to demonstrate sustainability ROI to boards and regulators.</div>
+          <div class="customers-row"><span class="customer-tag">Multiple Manufacturing Customers</span><span class="customer-tag">Kronos International</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"I think without the view programmed into Accolade our sustainability goals would have been impossible because it's very hard to keep these metrics in someone's face."</div>
+            <div class="quote-attr">— Innovation Applications Administrator, Manufacturing (Forrester TEI)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 16 -->
+    <div class="challenge-card" data-industries="aero">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-aero">Aerospace &amp; Gov</span>
+        </div>
+        <div class="challenge-number">Challenge 16</div>
+        <div class="challenge-title">Large agency lacks program visibility across centers — disconnected from strategy and idea capture</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">For government agencies managing dozens of programs across distributed centers, the lack of a unified innovation system meant programs ran in isolation from corporate strategy. People were disconnected from idea capture. NASA needed full lifecycle visibility — from inception through execution — deployable across 10+ centers in under four months.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">10</div><div class="impact-desc">NASA centers rolled out to</div></div>
+          <div class="impact-chip"><div class="impact-number">4 mo</div><div class="impact-desc">Deployment timeline</div></div>
+          <div class="impact-chip"><div class="impact-number">Full</div><div class="impact-desc">Program lifecycle visibility, strategy to execution</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Accolade provided NASA with a single innovation system supporting corporate innovation and various business functions — deployed rapidly across 10 centers. The platform connected people to the idea capture and strategic planning processes that had previously run in isolation, giving leadership complete visibility across programs at every stage of the lifecycle.</div>
+          <div class="customers-row"><span class="customer-tag">NASA (Anon)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 17 -->
+    <div class="challenge-card" data-industries="cpg,bev,mfg">
+      <div class="card-header">
+        <div class="card-industries">
+          <span class="industry-pill pill-cpg">Consumer Goods</span>
+          <span class="industry-pill pill-bev">Beverage</span>
+          <span class="industry-pill pill-mfg">Manufacturing</span>
+        </div>
+        <div class="challenge-number">Challenge 17</div>
+        <div class="challenge-title">Low adoption of previous PPM tools — teams rejected the system and defaulted back to spreadsheets</div>
+      </div>
+      <div class="card-body">
+        <div class="card-section-label">The Pain</div>
+        <div class="card-pain">Organizations had tried to standardize on portfolio tools before — and failed. Low adoption rates, poor local support, complex interfaces, and lack of integration with existing tools like Power BI or Microsoft 365 meant teams abandoned systems and reverted to spreadsheets. Lion's previous system had "low adoption rates" and lacked local support.</div>
+        <div class="impact-metrics">
+          <div class="impact-chip"><div class="impact-number">SSO</div><div class="impact-desc">Single sign-on, out of the box</div></div>
+          <div class="impact-chip"><div class="impact-number">Power BI</div><div class="impact-desc">Native integration for reporting (Lion)</div></div>
+          <div class="impact-chip"><div class="impact-number">90%+</div><div class="impact-desc">Customers say Wellspring met or exceeded expectations</div></div>
+        </div>
+      </div>
+      <button class="toggle-btn" onclick="toggleCard(this)">How Accolade Solved It <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+      <div class="expandable">
+        <div class="how-section">
+          <div class="card-section-label">How We Helped</div>
+          <div class="how-text">Wellspring's approach combines best-practice methodology with deep partnership — not just software deployment. Accolade integrates natively with Microsoft tools (Teams, SharePoint, Power BI) and supports SSO, removing adoption friction. Wellspring's local support model and hands-on implementation expertise have consistently resulted in 90%+ of customers saying we met or exceeded expectations.</div>
+          <div class="customers-row"><span class="customer-tag">Lion Beverages</span><span class="customer-tag">Hershey</span><span class="customer-tag">Mondelēz</span></div>
+          <div class="quote-block">
+            <div class="quote-text">"Wellspring was great in offering industry best practice advice on how we could optimize our process & bring it back in line with best-in-class Stage Gate execution."</div>
+            <div class="quote-attr">— Innovation Planning Manager, Lion Beverages</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /challenge-grid -->
+</main>
+
+<!-- FOOTER -->
+<footer class="page-footer">
+  <div class="footer-logo">
+    <svg width="577" height="91" viewBox="0 0 577 91" fill="none" xmlns="http://www.w3.org/2000/svg" style="height:20px;width:auto;opacity:0.5;">
+<path d="M71.5558 68.4539L60.0481 68.7984C59.474 68.7984 59.2444 67.9947 59.7037 67.6503L65.2252 63.8563C67.0675 62.7083 67.4119 60.1771 66.1436 58.3348C64.7605 56.7221 62.3496 56.3777 60.7369 57.7608L48.8848 66.967C47.6219 67.8854 46.124 68.5797 44.5113 68.5797H35.0755C34.3867 68.5797 34.1571 67.8909 34.7311 67.5464C41.2913 63.6322 45.6593 61.2213 51.7603 57.6515C57.5115 54.3167 66.0288 49.484 66.0288 42.2349C66.0288 35.7895 61.3109 32.1104 54.2915 32.1104C49.344 32.1104 44.3965 33.3787 40.2526 34.9859C30.3576 38.6651 19.1998 45.6845 16.6686 56.733C15.7502 60.4122 20.9273 62.7138 22.7642 58.6902C23.6826 56.5034 24.7213 54.5463 26.2138 52.5946C32.4241 45.0012 43.7022 39.4797 53.138 39.4797C55.8987 39.4797 57.5114 40.3981 57.5114 42.3552C57.5114 43.7383 56.8226 45.116 54.2915 46.9583C51.4159 49.0302 40.7173 54.8962 34.1571 58.9252C25.6452 64.1023 22.9993 66.2891 22.9993 69.7387C22.9993 74.1121 26.7932 75.949 32.435 75.949H44.5168C46.3591 75.949 47.5071 76.523 48.7754 77.4469L60.7424 86.7679C62.4699 88.151 65.001 87.6863 66.2639 85.9642C67.4119 84.1219 66.9527 81.8204 65.2306 80.5575L59.7091 76.7635C59.2499 76.4191 59.4795 75.7303 60.0535 75.7303L71.5612 76.0747C76.8531 76.1895 76.7383 68.3665 71.5612 68.4813L71.5558 68.4539Z" fill="white"/>
+<path d="M120.91 68.4544L108.714 68.7988C108.14 68.7988 107.91 67.9952 108.369 67.6508L113.891 63.8568C115.733 62.7088 116.078 60.1776 114.809 58.3353C113.426 56.7226 111.015 56.3782 109.403 57.7613L97.5506 66.9674C96.2877 67.8859 94.7898 68.2357 93.4067 68.0007C85.354 66.7324 81.899 62.8236 81.899 58.1057C81.899 51.7805 91.1052 47.1775 98.5838 42.9188C107.096 37.9713 114.23 34.8661 114.23 28.5355C114.23 24.3916 110.78 19.5589 98.469 17.8369C95.1342 17.3777 92.9475 18.0665 92.4883 20.368C92.0291 22.6696 93.4067 24.0472 96.1675 24.7415C102.033 26.1246 105.833 27.1579 105.833 29.115C105.833 31.4275 99.3874 34.0625 94.7898 36.4788C85.1244 41.4263 73.6222 47.8663 73.6222 57.8761C73.6222 67.8859 79.9473 73.7518 93.4122 75.7089C95.1397 75.9385 96.2877 76.5125 97.4412 77.4364L109.408 86.7574C111.136 88.1405 113.667 87.6758 114.93 85.9538C116.078 84.1115 115.618 81.8099 113.896 80.5471L108.375 76.7531C107.916 76.4087 108.145 75.7199 108.719 75.7199L120.916 76.0643C126.208 76.1791 126.093 68.356 120.916 68.4708L120.91 68.4544Z" fill="white"/>
+<path d="M64.8806 26.3483C67.1821 29.3387 70.6317 31.4106 74.6607 31.4106C81.4506 31.4106 86.9721 25.6595 86.9721 19.2141C86.9721 12.7687 81.4506 7.01758 74.7755 7.01758C69.9429 7.01758 65.799 9.89314 63.8473 14.037C63.1585 15.5349 62.4642 16.2237 59.9331 16.5682C56.8279 17.1422 53.8375 17.7162 50.7269 18.1809C35.4252 21.0564 19.5495 26.0039 8.61579 37.856C3.55895 43.3776 0.109375 49.8175 0.109375 56.9517C0.109375 66.8467 7.58802 71.5646 9.65995 72.7127C10.9228 73.4015 12.4207 73.2867 13.4539 72.2534C14.7223 70.9906 14.602 69.0335 13.3391 67.88C10.234 64.8896 7.58802 62.7029 7.58802 57.1813C7.58802 51.6598 10.808 47.0568 14.4926 43.1425C26.5744 30.4867 43.7129 26.2281 60.5125 24.3912C62.6993 24.1616 63.9621 24.9652 64.886 26.3483H64.8806ZM74.7755 14.7258C77.3067 14.7258 79.2638 16.7978 79.2638 19.2141C79.2638 21.6305 77.3067 23.7024 74.7755 23.7024C72.2444 23.7024 70.2873 21.7453 70.2873 19.2141C70.2873 16.683 72.3592 14.7258 74.7755 14.7258Z" fill="white"/>
+<path d="M210.752 21.8657L199.873 53.7046L189.344 21.8657H179.214L169.325 54.1201L158.287 21.8657H142.603L162.19 72.7129H172.239L181.751 41.6721L192.389 72.7129H202.437L220.751 21.8657H210.752Z" fill="white"/>
+<path d="M243.264 20.8595C229.023 20.8595 218.69 32.4929 218.69 48.139C218.69 63.7851 229.925 73.7129 243.264 73.7129C255.099 73.7129 263.119 67.0926 263.923 57.2632C260.812 60.3738 255.597 62.2763 249.78 62.2763C242.958 62.2763 234.938 58.5643 232.532 48.6365H263.923C264.021 48.0352 263.988 49.0356 264.021 48.6365C265.552 32.3726 257.303 20.854 243.258 20.854L243.264 20.8595ZM249.982 40.7205H231.729C232.128 32.2961 236.643 27.7805 241.76 27.7805C246.374 27.7805 250.387 31.0879 249.982 40.7205Z" fill="white"/>
+<path d="M284.702 2.50732H270.762V72.7126H284.702V2.50732Z" fill="white"/>
+<path d="M306.258 2.50732H292.318V72.7126H306.258V2.50732Z" fill="white"/>
+<path d="M338.934 42.2239L332.111 40.0153C326.393 38.2112 324.386 35.6036 324.386 32.892C324.386 29.5846 327.393 27.2775 330.908 27.2775C335.522 27.2775 337.928 30.0875 337.928 34.8983V35.8004H351.868C351.617 25.0525 342.34 20.854 332.51 20.854C319.871 20.854 311.851 27.775 311.851 36.8992C311.851 44.2193 316.864 48.631 325.288 51.5394L332.007 53.8464C337.124 55.6505 339.229 58.0614 339.229 61.2704C339.229 64.4794 336.222 67.2894 331.707 67.2894C326.19 67.2894 323.381 63.3751 323.381 59.0618V58.1598H309.238C309.238 69.6893 319.865 73.702 330.198 73.702C343.837 73.702 352.863 66.6826 352.863 56.7548C352.863 49.134 347.746 45.1213 338.923 42.213L338.934 42.2239Z" fill="white"/>
+<path d="M386.206 20.8594C378.984 20.8594 373.971 25.0743 371.363 30.2897V21.8653H357.423V89.7635H371.363V72.2094C374.271 73.2153 377.382 73.7128 380.389 73.7128C395.833 73.7128 405.766 62.1778 405.766 45.8319C405.766 29.4861 396.139 20.8594 386.206 20.8594ZM379.787 66.9941C376.376 66.9941 371.363 64.0584 371.363 58.1378V32.5912C373.069 31.5908 375.173 30.7872 377.579 30.7872C385.905 30.7872 390.918 37.1779 390.918 50.845C390.918 61.8771 385.801 66.9941 379.782 66.9941H379.787Z" fill="white"/>
+<path d="M424.965 33.4992V21.8658H411.025V72.7184H424.965V35.3087H444.121V21.3683C443.618 21.2699 442.618 21.166 441.913 21.166C433.887 21.166 428.071 26.1791 424.965 33.4992Z" fill="white"/>
+<path d="M463.326 21.8657H449.386V72.7183H463.326V21.8657Z" fill="white"/>
+<path d="M503.141 20.8594C495.22 20.8594 490.004 25.1727 486.593 30.6888V21.8598H472.653V72.7124H486.593V32.7935C488.999 31.6892 491.409 30.9894 493.815 30.9894C500.534 30.9894 503.841 34.8982 503.841 42.8252V72.7124H517.782V38.1127C517.782 26.3809 511.462 20.8648 503.141 20.8648V20.8594Z" fill="white"/>
+<path d="M576.123 17.7217C575.702 17.6397 574.855 17.5522 574.265 17.5522C568.251 17.5522 563.714 20.9034 560.937 25.9876C556.787 22.5599 551.173 20.8597 544.613 20.8597C530.169 20.8597 523.051 29.1857 523.051 37.9108C523.051 45.63 527.567 50.5501 535.188 52.6549C528.469 53.8576 525.457 58.0725 525.457 62.3804C525.457 66.2946 528.163 69.0991 533.181 70.6025C524.156 71.4061 518.339 74.5004 518.339 79.929C518.339 87.7192 528.671 90.7588 544.317 90.7588C559.963 90.7588 572.4 81.733 572.4 71.2039C572.4 63.3808 566.54 58.6684 553.977 58.6684H537.194V53.1523C539.403 53.5514 541.906 53.7537 544.514 53.7537C558.958 53.7537 566.075 45.8322 566.075 36.6042C566.075 33.9965 565.228 31.3998 563.965 29.4645H576.123V17.7217ZM551.074 71.2093C556.935 71.2093 561.101 72.4394 561.101 76.124C561.101 81.9243 554.338 84.5484 545.815 84.5484C537.292 84.5484 531.673 81.8423 531.673 77.529C531.673 75.222 533.127 72.7127 535.887 71.2093H551.074ZM545.115 47.4395C540.6 47.4395 536.789 43.6291 536.789 36.4074C536.789 30.8914 539.9 26.8787 544.514 26.8787C549.128 26.8787 552.736 30.7929 552.736 38.0146C552.736 43.4323 549.626 47.445 545.115 47.445V47.4395Z" fill="white"/>
+<path d="M456.356 0.23877C451.666 0.23877 447.861 3.1362 447.861 8.1821C447.861 13.228 451.666 16.1254 456.356 16.1254C461.047 16.1254 464.852 13.228 464.852 8.1821C464.852 3.1362 461.047 0.23877 456.356 0.23877Z" fill="white"/>
+    </svg>
+  </div>
+  <span class="footer-text">© 2026 Wellspring Worldwide Inc. · Accolade® Customer Challenge Library · Internal Sales Enablement · Confidential</span>
+  <span class="footer-text">Sources: Wellspring case studies · Internal Sopheon Stories (2021) · Forrester TEI Study (Aug 2024)</span>
+</footer>
+
+<script>
+  // PASSWORD PROTECTION
+  const CORRECT_PASSWORD = 'HopFrogHop2026$'; // Change this to your desired password
+
+  function checkPassword() {
+    const input = document.getElementById('password-input');
+    const password = input.value;
+    const errorMsg = document.getElementById('password-error');
+
+    if (password === CORRECT_PASSWORD) {
+      document.getElementById('password-overlay').classList.add('hidden');
+      input.value = '';
+    } else {
+      errorMsg.classList.add('show');
+      input.value = '';
+      input.focus();
+      setTimeout(() => errorMsg.classList.remove('show'), 3000);
+    }
+  }
+
+  // Allow Enter key to submit
+  document.getElementById('password-input').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      checkPassword();
+    }
+  });
+
+  // Focus on password input on load
+  window.addEventListener('load', function() {
+    document.getElementById('password-input').focus();
+  });
+
+  // CHALLENGE LIBRARY FUNCTIONALITY
+  const tabs = document.querySelectorAll('.filter-tab');
+  const cards = document.querySelectorAll('.challenge-card');
+  const countEl = document.getElementById('count');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const filter = tab.dataset.filter;
+      let visible = 0;
+      cards.forEach(card => {
+        const industries = card.dataset.industries.split(',');
+        const show = filter === 'all' || industries.includes(filter);
+        card.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      countEl.textContent = visible;
+    });
+  });
+
+  function toggleCard(btn) {
+    const expandable = btn.nextElementSibling;
+    const isOpen = expandable.classList.contains('open');
+    expandable.classList.toggle('open', !isOpen);
+    btn.classList.toggle('open', !isOpen);
+  }
+</script>
+</body>
+</html>
